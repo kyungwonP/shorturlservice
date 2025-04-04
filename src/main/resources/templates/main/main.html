@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id="myForm">
+    <input type="text" name="url" placeholder="url을 입력하세요."/>
+    <button type="submit">추가</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>원본URL</th>
+        <th>key</th>
+        <th>호출수</th>
+    </tr>
+    </thead>
+    <tbody id="shortUrlList">
+    <tr th:each="item : ${shortUrls}">
+        <td th:text="${item.url}">원본URL</td>
+        <td th:text="${item.key}">key</td>
+        <td th:text="${item.callCount}">호출수</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+
+<script>
+
+    // 페이지 로드 시 조회
+    window.onload = function () {
+        searchShortUrls();
+    };
+
+    const form = document.getElementById('myForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const res = await fetch('/short-url', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: form.url.value,
+        });
+
+        if (res.ok) {
+            console.log('생성 완료');
+            // 여기서 리스트 다시 조회하거나 화면 갱신 가능
+            searchShortUrls(); // 예시 함수
+        }
+    });
+
+    // 조회 함수
+    async function searchShortUrls() {
+        try {
+            const response = await fetch('/short-urls'); // 백엔드에서 JSON으로 리스트 주는 API
+            const data = await response.json();
+
+            const tbody = document.getElementById('shortUrlList');
+            tbody.innerHTML = ''; // 기존 내용 지우기
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${item.url}</td>
+                <td>${item.key}</td>
+                <td>${item.callCount}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            console.error('조회 실패:', err);
+        }
+    }
+
+</script>
+</html>
